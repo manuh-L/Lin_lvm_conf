@@ -1,0 +1,39 @@
+---
+- name: LVM config...
+  hosts: all
+  gather_facts: no
+  become: true
+
+  tasks:
+    - name: Create a volume group "{{Volume_group_name}}" on "{{disco_fisico}}"
+      lvg:
+        vg: "{{Volume_group_name}}"
+        pvs: "{{disco_fisico}}"
+
+    - name: Creating a logical volume "{{Logical_vol_name}}" on "{{Volume_group_name}}"
+      lvol:
+        vg: "{{Volume_group_name}}"
+        lv: "{{Logical_vol_name}}"
+        size: 100%FREE
+        shrink: no
+#        force: no
+        state: present
+  
+    - name: Formating FS XFS
+      filesystem:
+        fstype: xfs
+        dev: "/dev/{{Volume_group_name}}/{{Logical_vol_name}}"
+
+    - name: Creating dir "{{mountp_name}}" to mount
+      file:
+        path: "{{mountp_name}}"
+        state: directory
+        mode: '755' 
+
+    - name: Mounting lvm {{Logical_vol_name}}" on "{{mountp_name}}"
+      mount:
+        path: "{{mountp_name}}" #/vx
+        src: "/dev/mapper/{{Volume_group_name}}-{{Logical_vol_name}}"
+        fstype: xfs
+        state: mounted
+
