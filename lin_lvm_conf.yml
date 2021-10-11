@@ -7,33 +7,35 @@
   tasks:
     - name: Create a volume group "{{Volume_group_name}}" on "{{disco_fisico}}"
       lvg:
-        vg: "{{Volume_group_name}}"
-        pvs: "{{disco_fisico}}"
+        vg: "{{Volume_group_name}}" #vg_vx
+        pvs: "{{disco_fisico}}" #/dev/sdb
 
     - name: Creating a logical volume "{{Logical_vol_name}}" on "{{Volume_group_name}}"
       lvol:
         vg: "{{Volume_group_name}}"
-        lv: "{{Logical_vol_name}}"
+        lv: "{{Logical_vol_name}}" #lv_vx
         size: 100%FREE
         shrink: no
 #        force: no
         state: present
+#      when:
+#        - ansible_lvm['vg_vx']['lv_vx'] is not defined
+#        pvs: /dev/sdb
   
     - name: Formating FS XFS
       filesystem:
         fstype: xfs
-        dev: "/dev/{{Volume_group_name}}/{{Logical_vol_name}}"
+        dev: "/dev/{{Volume_group_name}}/{{Logical_vol_name}}" #/dev/vg_vx/lv_vx
 
     - name: Creating dir "{{mountp_name}}" to mount
       file:
-        path: "{{mountp_name}}"
+        path: "{{mountp_name}}" #/vx
         state: directory
         mode: '755' 
 
     - name: Mounting lvm {{Logical_vol_name}}" on "{{mountp_name}}"
       mount:
         path: "{{mountp_name}}" #/vx
-        src: "/dev/mapper/{{Volume_group_name}}-{{Logical_vol_name}}"
+        src: "/dev/mapper/{{Volume_group_name}}-{{Logical_vol_name}}" #/dev/mapper/vg_vx-lv_vx
         fstype: xfs
         state: mounted
-
